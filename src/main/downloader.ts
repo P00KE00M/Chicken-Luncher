@@ -2,6 +2,7 @@ import axios from 'axios'
 import * as fs from 'fs'
 import * as path from 'path'
 import * as crypto from 'crypto'
+// @ts-ignore (រំលង Type check ព្រោះយើងលុប @types ចេញ)
 import AdmZip from 'adm-zip'
 
 export async function downloadFile(url: string, dest: string, sha1?: string): Promise<void> {
