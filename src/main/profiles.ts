@@ -1,15 +1,14 @@
 import { initDatabase } from './database'
-import { v4 as uuidv4 } from 'uuid'
+import { randomUUID } from 'crypto'
 import * as fs from 'fs'
 import * as path from 'path'
-import { app } from 'electron'
 
 export interface Profile {
   id: string
   name: string
   username: string
   version: string
-  mods: string[] // URLs
+  mods: string[]
 }
 
 const db = () => initDatabase()
@@ -34,12 +33,7 @@ export function deleteProfile(id: string) {
 }
 
 export function createProfile(name: string, username: string, version: string): Profile {
-  const profile: Profile = { id: uuidv4(), name, username, version, mods: [] }
+  const profile: Profile = { id: randomUUID(), name, username, version, mods: [] }
   saveProfile(profile)
   return profile
-}
-
-// Modrinth & Resource Pack Downloader
-export async function installMod(profileId: string, projectId: string, type: 'mod' | 'resourcepack') {
-  // ... (Implementation later in Phase 3, but UI exists now)
 }
