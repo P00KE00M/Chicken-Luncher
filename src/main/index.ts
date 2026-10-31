@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { initDatabase } from './database'
+import { getVersions, launchOfflineGame } from './game'
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -24,7 +25,11 @@ app.whenReady().then(() => {
   initDatabase()
   ipcMain.handle('app:get-version', () => app.getVersion())
   ipcMain.handle('app:get-platform', () => process.platform)
+  ipcMain.handle('game:get-versions', async () => await getVersions())
+  ipcMain.handle('game:launch', async (_, ver, user) => {
+    const gameDir = join(app.getPath('userData'), 'minecraft')
+    return await launchOfflineGame(ver, user, gameDir)
+  })
   createWindow()
-  app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow() })
 })
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit() })
