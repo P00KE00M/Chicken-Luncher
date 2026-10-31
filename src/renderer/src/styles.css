@@ -1,0 +1,4 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: #090A0D; color: #e8e8e8; overflow: hidden; }
