@@ -12,8 +12,8 @@ export async function getVersions() {
   return data.versions
 }
 
-async function downloadAssets(assetIndexUrl: string, gameDir: string) {
-  console.log('Fetching asset index...')
+async function downloadAssets(assetIndexUrl: string, gameDir: string, log: (m:string)=>void) {
+  log('Fetching asset index...')
   const { data: assetIndex } = await axios.get(assetIndexUrl)
   const assetsDir = path.join(gameDir, 'assets')
   fs.mkdirSync(path.join(assetsDir, 'indexes'), { recursive: true })
@@ -27,36 +27,31 @@ async function downloadAssets(assetIndexUrl: string, gameDir: string) {
     await downloadFile(url, dest, hash)
   })
   
-  console.log(`Downloading ${assetPromises.length} assets... (This may take a while)`)
-  // Download in batches to avoid rate limits
+  log(`Downloading ${assetPromises.length} assets...`)
   for (let i = 0; i < assetPromises.length; i += 50) {
     await Promise.all(assetPromises.slice(i, i + 50))
   }
 }
 
-export async function launchOfflineGame(versionId: string, username: string, gameDir: string) {
+export async function launchOfflineGame(versionId: string, username: string, gameDir: string, log: (m:string)=>void) {
   const { data: manifest } = await axios.get(MANIFEST_URL)
   const versionData = manifest.versions.find((v: any) => v.id === versionId)
   if (!versionData) throw new Error('Version not found')
 
   const { data: versionJson } = await axios.get(versionData.url)
-  
-  // Download Assets
-  await downloadAssets(versionJson.assetIndex.url, gameDir)
+  await downloadAssets(versionJson.assetIndex.url, gameDir, log)
 
-  // Download Client JAR
   const clientJarUrl = versionJson.downloads.client.url
   const clientJarPath = path.join(gameDir, 'versions', versionId, `${versionId}.jar`)
-  console.log('Downloading Client JAR...')
+  log('Downloading Client JAR...')
   await downloadFile(clientJarUrl, clientJarPath, versionJson.downloads.client.sha1)
 
-  // Download Libraries & Natives
   const libsDir = path.join(gameDir, 'libraries')
   const classpath: string[] = []
   const nativesDir = path.join(gameDir, 'versions', versionId, 'natives')
   fs.mkdirSync(nativesDir, { recursive: true })
 
-  console.log('Downloading Libraries...')
+  log('Downloading Libraries...')
   for (const lib of versionJson.libraries) {
     if (lib.downloads?.artifact) {
       const libPath = path.join(libsDir, lib.downloads.artifact.path)
@@ -77,7 +72,6 @@ export async function launchOfflineGame(versionId: string, username: string, gam
   }
   classpath.push(clientJarPath)
 
-  // Build Arguments
   const cpString = classpath.join(process.platform === 'win32' ? ';' : ':')
   const args = [
     `-Djava.library.path=${nativesDir}`,
@@ -94,8 +88,12 @@ export async function launchOfflineGame(versionId: string, username: string, gam
     '--versionType', 'release'
   ]
 
-  console.log('Launching Minecraft...')
-  const child = spawn('java', args, { cwd: gameDir, stdio: 'inherit' })
-  child.on('error', (err) => console.error('Failed to start Java. Please install Java 17+ on your PC!', err))
+  log('Launching Minecraft...')
+  const child = spawn('java', args, { cwd: gameDir })
+  
+  child.stdout.on('data', (data) => log(data.toString()))
+  child.stderr.on('data', (data) => log(data.toString()))
+  child.on('error', (err) => log('Java Error: ' + err.message))
+
   return child.pid
 }
