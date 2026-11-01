@@ -28,13 +28,23 @@ jobs:
         
       - name: Build Electron app
         run: pnpm --filter xmcl-electron-app build
+        
+      - name: Package Installer (Windows/macOS)
+        if: matrix.os != 'ubuntu-latest'
+        run: pnpm --filter xmcl-electron-app exec electron-builder --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package Installer (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: pnpm --filter xmcl-electron-app exec electron-builder --linux --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-build
+          name: ${{ matrix.os }}-installer
           path: |
             dist/**/*.exe
             dist/**/*.AppImage
