@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'pnpm'
           
       - name: Install dependencies
@@ -45,7 +45,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-installer
-          # យើងបន្ថែមផ្លូវស្វែងរកឱ្យកាន់តែទូលំទូលាយ
           path: |
             dist/**/*
             xmcl-electron-app/dist/**/*
