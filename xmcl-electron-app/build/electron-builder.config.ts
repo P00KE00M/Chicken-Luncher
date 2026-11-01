@@ -13,8 +13,8 @@ const linuxPackageScripts = {
 }
 
 export const config = {
-  productName: 'XMCL',
-  appId: 'xmcl',
+  productName: 'Chicken Launcher',
+  appId: 'com.chicken.launcher',
   directories: {
     output: 'build/output',
     buildResources: 'build',
