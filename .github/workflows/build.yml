@@ -31,13 +31,13 @@ jobs:
         
       - name: Package Installer (Windows/macOS)
         if: matrix.os != 'ubuntu-latest'
-        run: pnpm --filter xmcl-electron-app exec electron-builder --publish never
+        run: pnpm --filter xmcl-electron-app exec electron-builder --dir --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Package Installer (Linux)
         if: matrix.os == 'ubuntu-latest'
-        run: pnpm --filter xmcl-electron-app exec electron-builder --linux --publish never
+        run: pnpm --filter xmcl-electron-app exec electron-builder --linux --dir --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
@@ -45,11 +45,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-installer
+          # យើងរកមើល File ធំៗដែលបានវេចខ្ចប់រួច
           path: |
-            dist/**/*
-            xmcl-electron-app/dist/**/*
-            xmcl-electron-app/release/**/*
-            **/*.exe
-            **/*.AppImage
-            **/*.dmg
+            dist/win-unpacked/**/*
+            dist/mac/**/*
+            dist/linux-unpacked/**/*
           retention-days: 7
