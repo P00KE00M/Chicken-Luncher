@@ -16,19 +16,25 @@ jobs:
       
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 9
         
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: 'pnpm'
           
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
-      - name: Build and Package App
-        # ប្រើ Script ដែលគម្រោងដើមបានត្រៀមទុកសម្រាប់ការបង្កើត Installer
-        run: pnpm --filter xmcl-electron-app run build:electron
+      - name: Build UI and App
+        run: pnpm build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Package Installer
+        run: pnpm --filter xmcl-electron-app exec electron-builder --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
@@ -36,10 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-installer
-          # រកមើល File Installer នៅគ្រប់ទីកន្លែងដែលអាចមាន
           path: |
-            **/*.exe
-            **/*.AppImage
-            **/*.dmg
-            **/*.zip
+            xmcl-electron-app/dist/**/*
+            dist/**/*
           retention-days: 7
