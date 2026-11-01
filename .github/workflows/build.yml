@@ -26,18 +26,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
-      - name: Build Electron app
-        run: pnpm --filter xmcl-electron-app build
-        
-      - name: Package Installer (Windows/macOS)
-        if: matrix.os != 'ubuntu-latest'
-        run: pnpm --filter xmcl-electron-app exec electron-builder --dir --publish never
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Package Installer (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: pnpm --filter xmcl-electron-app exec electron-builder --linux --dir --publish never
+      - name: Build and Package App
+        # ប្រើ Script ដែលគម្រោងដើមបានត្រៀមទុកសម្រាប់ការបង្កើត Installer
+        run: pnpm --filter xmcl-electron-app run build:electron
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
@@ -45,9 +36,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-installer
-          # យើងរកមើល File ធំៗដែលបានវេចខ្ចប់រួច
+          # រកមើល File Installer នៅគ្រប់ទីកន្លែងដែលអាចមាន
           path: |
-            dist/win-unpacked/**/*
-            dist/mac/**/*
-            dist/linux-unpacked/**/*
+            **/*.exe
+            **/*.AppImage
+            **/*.dmg
+            **/*.zip
           retention-days: 7
